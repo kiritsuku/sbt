@@ -2,7 +2,6 @@ import sbt._
 import Keys._
 import StatusPlugin.autoImport._
 import org.apache.ivy.util.url.CredentialsStore
-import com.typesafe.sbt.JavaVersionCheckPlugin.autoImport._
 
 object Release extends Build {
   lazy val remoteBase = SettingKey[String]("remote-base")
@@ -30,7 +29,7 @@ object Release extends Build {
       // Note - This will eitehr issue a failure or succeed.
       getCredentials(credentials.value, streams.value.log)
     }
-  ) ++ lameCredentialSettings ++ javaVersionCheckSettings
+  ) ++ lameCredentialSettings
 
   def snapshotPattern(version: String) = Resolver.localBasePattern.replaceAll("""\[revision\]""", version)
   def publishResolver: Def.Initialize[Option[Resolver]] = (remoteID, remoteBase) { (id, base) =>
@@ -40,7 +39,7 @@ object Release extends Build {
   lazy val CredentialsFile: File = Path.userHome / ".ivy2" / ".typesafe-credentials"
 
   // this is no longer strictly necessary, since the launcher is now published as normal
-  // however, existing scripts expect the launcher to be in a certain place and normal publishing adds "jars/" 
+  // however, existing scripts expect the launcher to be in a certain place and normal publishing adds "jars/"
   // to the published path
   def deployLauncher(launcher: TaskKey[File]) =
     (launcher, launcherRemotePath, credentials, remoteBase, streams) map { (launchJar, remotePath, creds, base, s) =>
@@ -57,8 +56,4 @@ object Release extends Build {
         case None        => sys.error("No credentials defined for " + PublishRepoHost)
       }
     }
-
-  def javaVersionCheckSettings = Seq(
-    javaVersionPrefix in javaVersionCheck := Some("1.6")
-  )
 }
